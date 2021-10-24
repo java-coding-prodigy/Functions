@@ -1,12 +1,14 @@
 package org.javacodingprodigy.Functions;
 
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
-public class Polynomial extends MathFunction {
+@SuppressWarnings("unused") public class Polynomial extends MathFunction {
     private static final Pattern POLYNOMIAL_SYNTAX =
             Pattern.compile("([+\\-]?\\d*(\\.\\d*)?)?(x(\\^(-?\\d+))?)?");
     private final double[] coefficients;
@@ -35,7 +37,18 @@ public class Polynomial extends MathFunction {
     }
 
     public static Polynomial parseLine(String line) {
-        line = line.replaceAll("\\+ ", "+").replaceAll("- ", "-");
+        line = line.replaceAll("\\+ ", "+")
+                .replaceAll("- ", "-")
+                .replaceAll("⁰", "^0")
+                .replaceAll("¹", "^1")
+                .replaceAll("²", "^2")
+                .replaceAll("³", "^3")
+                .replaceAll("⁴", "^4")
+                .replaceAll("⁵", "^5")
+                .replaceAll("⁶", "^6")
+                .replaceAll("⁷", "^7")
+                .replaceAll("⁸", "^8")
+                .replaceAll("⁹", "^9");
         StringTokenizer splitting = new StringTokenizer(line);
         Map<Integer, Double> stuff = new HashMap<>();
         while (splitting.hasMoreTokens()) {
@@ -66,14 +79,9 @@ public class Polynomial extends MathFunction {
     }
 
     public static void main(String[] args) {
-        System.out.println(parseLine("2x^2 + 7x -5").multiply(new Polynomial(2, 5)));
+        System.out.println(new Polynomial(-1, -1, 1).getRoots());
     }
 
-    private void qd(Polynomial divisor) {
-        System.out.println(
-                derivative().multiply(divisor).subtract(divisor.derivative().multiply(this)) + "/"
-                        + divisor.multiply(divisor));
-    }
 
     public Map<Integer, Double> coefficientsAsMap() {
         Map<Integer, Double> map = new HashMap<>(degree);
@@ -133,15 +141,38 @@ public class Polynomial extends MathFunction {
         }
         return (returnedPoly);
     }
-    public double[] getRoots(){
-        double[] roots = new double[degree + 1];
 
+    public int getReducible() {
+        int count = 0;
+        for (double coefficient : coefficients) {
+            if (coefficient != 0)
+                return count;
+            count++;
+        }
+        return count;
+    }
+
+    private @NotNull List<Double> startingPoints() {
+        return Collections.emptyList();
+    }
+
+    public List<Double> getRoots() {
+        List<Double> roots = new ArrayList<>(startingPoints());
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < roots.size(); j++) {
+                double x = roots.get(j);
+                roots.remove(x);
+                double den = roots.stream().map(d -> x - d).reduce(1.0, (a, b) -> a * b);
+                roots.add(x - apply(x) / den);
+            }
+        }
         return roots;
     }
-    public double[] intersectionPoints(Polynomial other){
-        
+
+    public List<Double> intersectionPoints(Polynomial other) {
         return subtract(other).getRoots();
     }
+
     @Override public Double apply(final Double x) {
         double sum = 0;
         for (int i = 0; i < degree; i++) {
@@ -216,5 +247,4 @@ public class Polynomial extends MathFunction {
         result = 31 * result + Arrays.hashCode(coefficients);
         return result;
     }
-
 }

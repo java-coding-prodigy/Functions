@@ -153,8 +153,8 @@ import java.util.stream.IntStream;
         return fasterThan(g) ? this : g;
     }
 
-    @Override public double[] getRoots() {
-        return new double[] {getXIntercept()};
+    @Override public List<Double> getRoots() {
+        return List.of(getXIntercept());
     }
 
     @Override public boolean equals(final Object o) {
